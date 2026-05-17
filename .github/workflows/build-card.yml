@@ -38,12 +38,12 @@ jobs:
           if-no-files-found: error
 
       - name: Dispatch card repo sync
-        if: ${{ secrets.CARD_REPO_DISPATCH_TOKEN != '' }}
         uses: actions/github-script@v7
         env:
           CARD_REPO_DISPATCH_TOKEN: ${{ secrets.CARD_REPO_DISPATCH_TOKEN }}
           CARD_REPO_OWNER: ${{ github.repository_owner }}
           CARD_REPO_NAME: kobrax-lan-hass-card
+        if: ${{ env.CARD_REPO_DISPATCH_TOKEN != '' }}
         with:
           script: |
             const token = process.env.CARD_REPO_DISPATCH_TOKEN;
