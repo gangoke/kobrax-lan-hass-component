@@ -24,9 +24,12 @@ Architecture:
 ## Installation (HACS)
 
 1. Add this repository as a custom repository in HACS with category `Integration`.
+
+   ```https://github.com/gangoke/kobrax-lan-hass-component```
+   
 2. Install the integration.
 3. Restart Home Assistant.
-4. Add integration `Kobra X` from Settings -> Devices & Services.
+4. Add integration `Kobra X LAN` from Settings -> Devices & Services.
 
 ## Configuration
 
