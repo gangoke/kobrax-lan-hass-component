@@ -64,5 +64,6 @@ jobs:
                 source_repository: `${context.repo.owner}/${context.repo.repo}`,
                 run_id: context.runId,
                 artifact_name: 'kobrax-lan-card',
+                source_branch: context.ref.replace('refs/heads/', ''),
               },
             });
