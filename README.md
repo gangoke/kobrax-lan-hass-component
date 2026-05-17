@@ -54,3 +54,9 @@ Build output from that folder creates:
 - dist/kobrax-lan-card.js
 
 The separate `kobrax-lan-hass-card` repository is the HACS distribution repo for the built artifact.
+
+Automation notes:
+
+- The build workflow uploads `kobrax-lan-card.js` as a GitHub Actions artifact.
+- If you add a `CARD_REPO_DISPATCH_TOKEN` secret, the workflow also dispatches a sync event to the card repo.
+- The card repo workflow expects a `SOURCE_REPO_TOKEN` secret so it can download the artifact from this repo and commit the updated `kobrax-lan-card.js` file.

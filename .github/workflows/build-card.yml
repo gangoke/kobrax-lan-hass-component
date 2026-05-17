@@ -36,3 +36,33 @@ jobs:
           name: kobrax-lan-card
           path: custom_components/kobrax_lan/frontend_panel/dist/kobrax-lan-card.js
           if-no-files-found: error
+
+      - name: Dispatch card repo sync
+        if: ${{ secrets.CARD_REPO_DISPATCH_TOKEN != '' }}
+        uses: actions/github-script@v7
+        env:
+          CARD_REPO_DISPATCH_TOKEN: ${{ secrets.CARD_REPO_DISPATCH_TOKEN }}
+          CARD_REPO_OWNER: gangoke
+          CARD_REPO_NAME: kobrax-lan-hass-card
+        with:
+          script: |
+            const token = process.env.CARD_REPO_DISPATCH_TOKEN;
+            const owner = process.env.CARD_REPO_OWNER;
+            const repo = process.env.CARD_REPO_NAME;
+
+            if (!token) {
+              core.info('CARD_REPO_DISPATCH_TOKEN is not set; skipping card repo dispatch.');
+              return;
+            }
+
+            const octokit = github.getOctokit(token);
+            await octokit.request('POST /repos/{owner}/{repo}/dispatches', {
+              owner,
+              repo,
+              event_type: 'sync-card',
+              client_payload: {
+                source_repository: `${context.repo.owner}/${context.repo.repo}`,
+                run_id: context.runId,
+                artifact_name: 'kobrax-lan-card',
+              },
+            });
