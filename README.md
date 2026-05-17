@@ -13,7 +13,8 @@ Architecture:
 - Light control
 - Print speed mode selection
 - Printer action buttons (pause, resume, cancel)
-- Camera snapshot entity using `/api/camera/snapshot`
+- Camera stream entity using the printer RTSP URL from KX-Bridge, with bridge MJPEG proxy fallback
+- Camera snapshot fallback using `/api/camera/snapshot`
 
 ## Prerequisites
 
@@ -38,3 +39,4 @@ The config flow asks for:
 
 - This integration talks to KX-Bridge HTTP endpoints and does not connect directly to the printer.
 - Keep KX-Bridge and Home Assistant on the same trusted network.
+- Native WebRTC is not implemented in this integration. If you want WebRTC in Home Assistant, point `go2rtc` or a WebRTC-capable HA add-on at the camera entity's RTSP source.

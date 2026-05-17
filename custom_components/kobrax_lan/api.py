@@ -17,6 +17,9 @@ class KobraXApiClient:
     def _url(self, path: str) -> str:
         return f"{self._base_url}{path}"
 
+    def camera_stream_proxy_url(self) -> str:
+        return self._url("/api/camera/stream")
+
     async def _get_json(self, path: str) -> dict[str, Any]:
         try:
             async with self._session.get(self._url(path)) as response:
@@ -75,6 +78,16 @@ class KobraXApiClient:
 
     async def async_disconnect(self) -> None:
         await self._post_json("/api/disconnect", {})
+
+    async def async_start_camera(self) -> None:
+        await self._post_json("/api/camera/start", {})
+
+    async def async_get_camera_url(self) -> str | None:
+        data = await self._get_json("/api/camera")
+        url = data.get("url")
+        if url is None or isinstance(url, str):
+            return url
+        raise KobraXApiError("Unexpected response for /api/camera")
 
     async def async_get_camera_snapshot(self) -> bytes:
         try:
