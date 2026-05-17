@@ -1,0 +1,20 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Kobra X",
+        "description": "Connect to your KX-Bridge instance",
+        "data": {
+          "host": "KX-Bridge URL",
+          "printer_name": "Printer name"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Could not connect to KX-Bridge"
+    },
+    "abort": {
+      "already_configured": "This KX-Bridge URL is already configured"
+    }
+  }
+}

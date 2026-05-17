@@ -1,0 +1,12 @@
+{
+  "domain": "kobrax",
+  "name": "Kobra X",
+  "codeowners": [
+    "@Gangoke"
+  ],
+  "config_flow": true,
+  "documentation": "https://gitea.it-drui.de/viewit/KX-Bridge-Release",
+  "iot_class": "local_polling",
+  "issue_tracker": "https://gitea.it-drui.de/viewit/KX-Bridge-Release/issues",
+  "version": "0.1.0"
+}
