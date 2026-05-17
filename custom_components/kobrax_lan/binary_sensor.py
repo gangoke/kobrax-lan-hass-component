@@ -36,6 +36,12 @@ BINARY_SENSORS: tuple[KobraXBinaryDescription, ...] = (
         value_key="light_on",
         icon="mdi:lightbulb",
     ),
+    KobraXBinaryDescription(
+        key="printer_online",
+        name="Printer Online",
+        value_key="kobra_state",
+        device_class=BinarySensorDeviceClass.CONNECTIVITY,
+    ),
 )
 
 

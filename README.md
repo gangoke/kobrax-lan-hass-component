@@ -12,9 +12,11 @@ Architecture:
 - Core printer sensors (state, temperatures, progress, file, layer/time data)
 - Light control
 - Print speed mode selection
+- Service calls for print speed mode and target temperatures (nozzle/bed)
 - Printer action buttons (pause, resume, cancel)
 - Camera stream entity using the printer RTSP URL from KX-Bridge, with bridge MJPEG proxy fallback
 - Camera snapshot fallback using `/api/camera/snapshot`
+- Card-compat alias entities for `kobrax-lan-card` (for example `job_state`, `job_progress`, `printer_online`, `target_nozzle_temperature`)
 
 ## Prerequisites
 
@@ -40,3 +42,15 @@ The config flow asks for:
 - This integration talks to KX-Bridge HTTP endpoints and does not connect directly to the printer.
 - Keep KX-Bridge and Home Assistant on the same trusted network.
 - Native WebRTC is not implemented in this integration. If you want WebRTC in Home Assistant, point `go2rtc` or a WebRTC-capable HA add-on at the camera entity's RTSP source.
+
+## Frontend Card Source
+
+The source-of-truth for the Kobrax LAN card is in:
+
+- custom_components/kobrax_lan/frontend_panel
+
+Build output from that folder creates:
+
+- dist/kobrax-lan-card.js
+
+The separate `kobrax-lan-hass-card` repository is the HACS distribution repo for the built artifact.

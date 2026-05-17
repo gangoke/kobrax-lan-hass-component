@@ -1,0 +1,38 @@
+name: Build Kobrax Card
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - custom_components/kobrax_lan/frontend_panel/**
+      - .github/workflows/build-card.yml
+
+jobs:
+  build-card:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: custom_components/kobrax_lan/frontend_panel
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: custom_components/kobrax_lan/frontend_panel/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build card
+        run: npm run build_card:quick
+
+      - name: Upload card artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kobrax-lan-card
+          path: custom_components/kobrax_lan/frontend_panel/dist/kobrax-lan-card.js
+          if-no-files-found: error
