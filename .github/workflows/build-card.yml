@@ -42,7 +42,7 @@ jobs:
         uses: actions/github-script@v7
         env:
           CARD_REPO_DISPATCH_TOKEN: ${{ secrets.CARD_REPO_DISPATCH_TOKEN }}
-          CARD_REPO_OWNER: gangoke
+          CARD_REPO_OWNER: ${{ github.repository_owner }}
           CARD_REPO_NAME: kobrax-lan-hass-card
         with:
           script: |
