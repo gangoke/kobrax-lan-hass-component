@@ -39,6 +39,13 @@ class KobraXApiClient:
     async def async_get_state(self) -> dict[str, Any]:
         return await self._get_json("/api/state")
 
+    async def async_get_files(self) -> list[dict[str, Any]]:
+        data = await self._get_json("/kx/files")
+        result = data.get("result", [])
+        if isinstance(result, list):
+            return result
+        raise KobraXApiError("Unexpected response for /kx/files")
+
     async def async_pause_print(self) -> None:
         await self._post_json("/printer/print/pause", {})
 

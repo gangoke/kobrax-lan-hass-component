@@ -1,7 +1,7 @@
 from datetime import timedelta
 
 NAME = "Kobra X"
-DOMAIN = "kobrax"
+DOMAIN = "kobrax_lan"
 MANUFACTURER = "Anycubic"
 
 CONF_HOST = "host"
@@ -19,4 +19,5 @@ PLATFORMS = [
     "select",
     "button",
     "camera",
+    "image",
 ]

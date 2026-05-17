@@ -35,13 +35,16 @@ BINARY_SENSORS: tuple[KobraXBinaryDescription, ...] = (
         name="Light State",
         value_key="light_on",
         icon="mdi:lightbulb",
-        entity_registry_enabled_default=False,
     ),
 )
 
 
 class KobraXBinarySensor(KobraXEntity, BinarySensorEntity):
     entity_description: KobraXBinaryDescription
+
+    def __init__(self, coordinator, entry, description: KobraXBinaryDescription) -> None:
+        super().__init__(coordinator, entry, description.key, description.name)
+        self.entity_description = description
 
     @property
     def is_on(self) -> bool:
@@ -56,7 +59,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
     coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
     async_add_entities(
         [
-            KobraXBinarySensor(coordinator, entry, description.key, description.name)
+            KobraXBinarySensor(coordinator, entry, description)
             for description in BINARY_SENSORS
         ]
     )

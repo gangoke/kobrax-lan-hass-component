@@ -54,6 +54,10 @@ BUTTONS: tuple[KobraXButtonDescription, ...] = (
 class KobraXActionButton(KobraXEntity, ButtonEntity):
     entity_description: KobraXButtonDescription
 
+    def __init__(self, coordinator, entry, description: KobraXButtonDescription) -> None:
+        super().__init__(coordinator, entry, description.key, description.name)
+        self.entity_description = description
+
     async def async_press(self) -> None:
         api = self.hass.data[DOMAIN][self._entry.entry_id]["api"]
         try:
@@ -76,7 +80,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
     coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
     async_add_entities(
         [
-            KobraXActionButton(coordinator, entry, description.key, description.name)
+            KobraXActionButton(coordinator, entry, description)
             for description in BUTTONS
         ]
     )

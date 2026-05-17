@@ -2,7 +2,7 @@
   "name": "Kobra X LAN",
   "content_in_root": false,
   "domains": [
-    "kobrax"
+    "kobrax_lan"
   ],
   "homeassistant": "2024.6.0",
   "iot_class": "local_polling",

@@ -41,6 +41,7 @@ SENSORS: tuple[KobraXSensorDescription, ...] = (
         value_key="nozzle_temp",
         device_class=SensorDeviceClass.TEMPERATURE,
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        suggested_unit_of_measurement=UnitOfTemperature.CELSIUS,
     ),
     KobraXSensorDescription(
         key="target_hotend_temp",
@@ -48,7 +49,7 @@ SENSORS: tuple[KobraXSensorDescription, ...] = (
         value_key="nozzle_target",
         device_class=SensorDeviceClass.TEMPERATURE,
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
-        entity_registry_enabled_default=False,
+        suggested_unit_of_measurement=UnitOfTemperature.CELSIUS,
     ),
     KobraXSensorDescription(
         key="bed_temp",
@@ -56,6 +57,7 @@ SENSORS: tuple[KobraXSensorDescription, ...] = (
         value_key="bed_temp",
         device_class=SensorDeviceClass.TEMPERATURE,
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        suggested_unit_of_measurement=UnitOfTemperature.CELSIUS,
     ),
     KobraXSensorDescription(
         key="target_bed_temp",
@@ -63,7 +65,7 @@ SENSORS: tuple[KobraXSensorDescription, ...] = (
         value_key="bed_target",
         device_class=SensorDeviceClass.TEMPERATURE,
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
-        entity_registry_enabled_default=False,
+        suggested_unit_of_measurement=UnitOfTemperature.CELSIUS,
     ),
     KobraXSensorDescription(
         key="filename",
@@ -82,7 +84,6 @@ SENSORS: tuple[KobraXSensorDescription, ...] = (
         name="Total Layers",
         value_key="total_layers",
         icon="mdi:layers",
-        entity_registry_enabled_default=False,
     ),
     KobraXSensorDescription(
         key="remaining_time",
@@ -95,13 +96,16 @@ SENSORS: tuple[KobraXSensorDescription, ...] = (
         name="Print Duration",
         value_key="print_duration",
         icon="mdi:timer-outline",
-        entity_registry_enabled_default=False,
     ),
 )
 
 
 class KobraXSensor(KobraXEntity, SensorEntity):
     entity_description: KobraXSensorDescription
+
+    def __init__(self, coordinator, entry, description: KobraXSensorDescription) -> None:
+        super().__init__(coordinator, entry, description.key, description.name)
+        self.entity_description = description
 
     @property
     def native_value(self) -> Any:
@@ -115,7 +119,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
     coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
     async_add_entities(
         [
-            KobraXSensor(coordinator, entry, description.key, description.name)
+            KobraXSensor(coordinator, entry, description)
             for description in SENSORS
         ]
     )
