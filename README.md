@@ -74,8 +74,8 @@ The filament slot entities are created from the AMS slot data reported by KX-Bri
 
 ## Prerequisites
 
-1. KX-Bridge must be running and reachable from Home Assistant.
-2. Verify KX-Bridge is accessible at `http://<bridge-host>:7125`.
+1. [KX-Bridge-Release](https://gitea.it-drui.de/viewit/KX-Bridge-Release) must be running and reachable from Home Assistant.
+2. Verify [KX-Bridge-Release](https://gitea.it-drui.de/viewit/KX-Bridge-Release) is accessible at `http://<bridge-host>:7125`.
 
 ## Installation (HACS)
 
