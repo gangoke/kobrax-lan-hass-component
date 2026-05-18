@@ -6,7 +6,7 @@ This project was coded with AI assistance and should be reviewed before use in p
 
 Architecture:
 
-- printer <-> [KX-Bridge-Release](https://github.com/gangoke/kx-bridge-release) <-> this integration <-> Home Assistant
+- printer <-> [KX-Bridge-Release](https://gitea.it-drui.de/viewit/KX-Bridge-Release) <-> this integration <-> Home Assistant
 
 ## Features
 
