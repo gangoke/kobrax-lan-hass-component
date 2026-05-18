@@ -2,9 +2,11 @@
 
 Home Assistant HACS integration for controlling and monitoring an Anycubic Kobra X through KX-Bridge.
 
+This project was coded with AI assistance and should be reviewed before use in production.
+
 Architecture:
 
-- printer <-> KX-Bridge-Release <-> this integration <-> Home Assistant
+- printer <-> [KX-Bridge-Release](https://github.com/gangoke/kx-bridge-release) <-> this integration <-> Home Assistant
 
 ## Features
 
@@ -12,9 +14,63 @@ Architecture:
 - Core printer sensors (state, temperatures, progress, file, layer/time data)
 - Light control
 - Print speed mode selection
-- Printer action buttons (pause, resume, cancel)
+- Printer action buttons (pause, resume, cancel, connect, disconnect)
 - Camera stream entity using the printer RTSP URL from KX-Bridge, with bridge MJPEG proxy fallback
 - Camera snapshot fallback using `/api/camera/snapshot`
+- G-code thumbnail image entity from the active print job
+
+## Available Entities
+
+### Binary Sensors
+
+- `Online`
+- `Printing`
+- `Light State`
+
+### Sensors
+
+- `State`
+- `Print State`
+- `Progress`
+- `Hotend Temperature`
+- `Target Hotend Temperature`
+- `Bed Temperature`
+- `Target Bed Temperature`
+- `Filename`
+- `Current Layer`
+- `Total Layers`
+- `Remaining Time`
+- `Print Duration`
+- `Filament Slot 1 Color` / `Filament Slot 1 Type`
+- `Filament Slot 2 Color` / `Filament Slot 2 Type`
+- `Filament Slot 3 Color` / `Filament Slot 3 Type`
+- `Filament Slot 4 Color` / `Filament Slot 4 Type`
+
+The filament slot entities are created from the AMS slot data reported by KX-Bridge. If the bridge does not report a slot count, the integration falls back to 4 slots.
+
+### Buttons
+
+- `Pause Print`
+- `Resume Print`
+- `Cancel Print`
+- `Connect Bridge`
+- `Disconnect Bridge`
+
+### Select
+
+- `Print Speed`
+
+### Light
+
+- `Light`
+
+### Camera
+
+- `Camera`
+
+### Image
+
+- `GCode Thumbnail`
 
 ## Prerequisites
 
