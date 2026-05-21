@@ -43,16 +43,16 @@ The config flow asks for:
 | Platform | Key Entities |
 | --- | --- |
 | Binary Sensor | Online, Printing, Light State |
-| Sensor | State, Print State, Progress, Temperatures, Filename, Layer/Time metrics, Skip-object counts, ACE status, AMS/ACE slot material |
-| Button | Pause Print, Resume Print, Cancel Print, Connect Bridge, Disconnect Bridge, Refresh Skip State, ACE Dryer Start, ACE Dryer Stop |
-| Switch | ACE auto-fill switches per detected ACE unit |
-| Number | ACE dry target temperature, ACE dry duration |
+| Sensor | State, Print State, Progress, Hotend Temperature, Target Hotend Temperature, Bed Temperature, Target Bed Temperature, Filename, Current Layer, Total Layers, Remaining Time, Print Duration, Skip Object Count, Skipped Object Count, Filament Mode, ACE Unit Count, Bridge Version, Latest Available Version, Slot 1..Slot 19, ACE 1..4 Dryer Status, ACE 1..4 Dryer Humidity, ACE 1..4 Dryer Current Temperature, ACE 1..4 Dryer Target Temperature, ACE 1..4 Dryer Remaining Time |
+| Button | Pause Print, Resume Print, Cancel Print, Connect Bridge, Disconnect Bridge, Refresh Skip State, Apply Update (KX-Bridge) |
+| Switch | ACE 1..4 Auto Fill, ACE 1..4 Dryer |
+| Number | ACE 1..4 Dryer Target Temperature, ACE 1..4 Dryer Duration |
 | Select | Print speed |
 | Light | Printer light |
 | Camera | Printer camera |
 | Image | G-code thumbnail |
 
-Slot entities are generated dynamically from KX-Bridge AMS/ACE slot data (including larger ACE topologies).
+Slot and ACE entities are pre-created and automatically enabled/disabled based on detected slot mode and ACE unit count from KX-Bridge.
 
 ## Notes
 

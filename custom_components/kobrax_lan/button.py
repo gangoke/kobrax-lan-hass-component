@@ -77,9 +77,6 @@ BUTTONS: tuple[KobraXButtonDescription, ...] = (
 )
 
 
-# ACE dryer buttons are now dynamically created in async_setup_entry
-
-
 class KobraXActionButton(KobraXEntity, ButtonEntity):
     entity_description: KobraXButtonDescription
 
@@ -132,58 +129,12 @@ class KobraXActionButton(KobraXEntity, ButtonEntity):
             raise ServiceValidationError(str(err)) from err
 
 
-class KobraXAceDryButton(KobraXEntity, ButtonEntity):
-    def __init__(
-        self,
-        coordinator,
-        entry,
-        ace_id: int,
-        action: str,  # "dry_start" or "dry_stop"
-    ) -> None:
-        if action == "dry_start":
-            unique_key = f"ace_{ace_id}_dry_start"
-            name = f"ACE {ace_id + 1} Dryer Start"
-            icon = "mdi:tumble-dryer"
-        else:  # dry_stop
-            unique_key = f"ace_{ace_id}_dry_stop"
-            name = f"ACE {ace_id + 1} Dryer Stop"
-            icon = "mdi:tumble-dryer-off"
-
-        super().__init__(coordinator, entry, unique_key, name)
-        self._ace_id = ace_id
-        self._action = action
-        self._attr_icon = icon
-
-    async def async_press(self) -> None:
-        api = self.hass.data[DOMAIN][self._entry.entry_id]["api"]
-        try:
-            if self._action == "dry_start":
-                cfg = self.hass.data[DOMAIN][self._entry.entry_id]["ace_dry_config"]
-                ace_cfg = cfg.get(self._ace_id) or {}
-                await api.async_set_ace_dry(
-                    "start",
-                    target_temp=int(ace_cfg.get("target_temp", 45)),
-                    duration=int(ace_cfg.get("duration", 240)),
-                    ace_id=self._ace_id,
-                )
-            elif self._action == "dry_stop":
-                await api.async_set_ace_dry("stop", ace_id=self._ace_id)
-            await self.coordinator.async_request_refresh()
-        except KobraXApiError as err:
-            raise ServiceValidationError(str(err)) from err
-
-
 async def async_setup_entry(hass, entry, async_add_entities):
     coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
-    
+
     entities = [
         KobraXActionButton(coordinator, entry, description)
         for description in BUTTONS
     ]
-    
-    # Pre-create all 8 ACE dryer buttons (start + stop for each of 4 ACE units)
-    for ace_id in range(4):
-        entities.append(KobraXAceDryButton(coordinator, entry, ace_id, "dry_start"))
-        entities.append(KobraXAceDryButton(coordinator, entry, ace_id, "dry_stop"))
-    
+
     async_add_entities(entities)
