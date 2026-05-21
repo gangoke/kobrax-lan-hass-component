@@ -85,14 +85,6 @@ class KobraXAceDryerSwitch(KobraXEntity, SwitchEntity):
         except KobraXApiError as err:
             raise ServiceValidationError(str(err)) from err
 
-    async def async_turn_off(self, **kwargs) -> None:
-        api = self.hass.data[DOMAIN][self._entry.entry_id]["api"]
-        try:
-            await api.async_set_ace_auto_feed(self._ace_id, False)
-            await self.coordinator.async_request_refresh()
-        except KobraXApiError as err:
-            raise ServiceValidationError(str(err)) from err
-
 
 async def async_setup_entry(hass, entry, async_add_entities):
     coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]

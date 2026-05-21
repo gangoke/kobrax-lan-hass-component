@@ -523,6 +523,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
         for ace_index in range(MAX_ACE_UNITS):
             # Switch entities
             ace_entities.append(("switch", f"{entry.entry_id}_ace_{ace_index}_auto_feed"))
+            ace_entities.append(("switch", f"{entry.entry_id}_ace_{ace_index}_dryer"))
             
             # Number entities (temp + duration)
             ace_entities.append(("number", f"{entry.entry_id}_ace_{ace_index}_dry_target_temp"))
