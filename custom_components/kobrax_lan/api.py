@@ -78,11 +78,7 @@ class KobraXApiClient:
         raise KobraXApiError("Unexpected response for /kx/skip/state")
 
     async def async_set_ace_auto_feed(self, ace_id: int, on: bool) -> dict[str, Any]:
-        data = await self._post_json("/api/ace/auto_feed", {"ace_id": ace_id, "on": on})
-        result = data.get("result")
-        if result is None:
-            raise KobraXApiError("Unexpected response for /api/ace/auto_feed")
-        return data
+        return await self._post_json("/api/ace/auto_feed", {"ace_id": ace_id, "on": on})
 
     async def async_set_ace_dry(
         self,
@@ -99,11 +95,7 @@ class KobraXApiClient:
         if ace_id is not None:
             payload["ace_id"] = int(ace_id)
 
-        data = await self._post_json("/api/ace/dry", payload)
-        result = data.get("result")
-        if result is None:
-            raise KobraXApiError("Unexpected response for /api/ace/dry")
-        return data
+        return await self._post_json("/api/ace/dry", payload)
 
     async def async_pause_print(self) -> None:
         await self._post_json("/printer/print/pause", {})
