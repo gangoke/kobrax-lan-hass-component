@@ -7,6 +7,7 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
     BinarySensorEntityDescription,
 )
+from homeassistant.helpers.entity import EntityCategory
 
 from .const import DOMAIN
 from .entity import KobraXEntity
@@ -23,6 +24,7 @@ BINARY_SENSORS: tuple[KobraXBinaryDescription, ...] = (
         name="Online",
         value_key="kobra_state",
         device_class=BinarySensorDeviceClass.CONNECTIVITY,
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     KobraXBinaryDescription(
         key="printing",

@@ -1,101 +1,61 @@
-# Kobra X Home Assistant Component
+# Kobra X LAN for Home Assistant
 
-Home Assistant HACS integration for controlling and monitoring an Anycubic Kobra X through KX-Bridge.
+Home Assistant integration for monitoring and controlling an Anycubic Kobra X through KX-Bridge.
 
 This project was coded with AI assistance and should be reviewed before use in production.
 
 Architecture:
 
-- printer <-> [KX-Bridge-Release](https://gitea.it-drui.de/viewit/KX-Bridge-Release) <-> this integration <-> Home Assistant
+- printer <-> [KX-Bridge](https://gitea.it-drui.de/viewit/KX-Bridge-Release) <-> this integration <-> Home Assistant
 
-## Features
+## Requirements
 
-- Auto-discovered status from KX-Bridge `/api/state`
-- Core printer sensors (state, temperatures, progress, file, layer/time data)
-- Light control
-- Print speed mode selection
-- Printer action buttons (pause, resume, cancel, connect, disconnect)
-- Camera stream entity using the printer RTSP URL from KX-Bridge, with bridge MJPEG proxy fallback
-- Camera snapshot fallback using `/api/camera/snapshot`
-- G-code thumbnail image entity from the active print job
+- Running and reachable [KX-Bridge-Release](https://gitea.it-drui.de/viewit/KX-Bridge-Release)
+- Bridge endpoint accessible from Home Assistant at `http://<bridge-host>:7125`
 
-## Available Entities
+## Installation
 
-### Binary Sensors
+### Option 1: HACS
 
-- `Online`
-- `Printing`
-- `Light State`
-
-### Sensors
-
-- `State`
-- `Print State`
-- `Progress`
-- `Hotend Temperature`
-- `Target Hotend Temperature`
-- `Bed Temperature`
-- `Target Bed Temperature`
-- `Filename`
-- `Current Layer`
-- `Total Layers`
-- `Remaining Time`
-- `Print Duration`
-- `Filament Slot 1 Color` / `Filament Slot 1 Type`
-- `Filament Slot 2 Color` / `Filament Slot 2 Type`
-- `Filament Slot 3 Color` / `Filament Slot 3 Type`
-- `Filament Slot 4 Color` / `Filament Slot 4 Type`
-
-The filament slot entities are created from the AMS slot data reported by KX-Bridge. If the bridge does not report a slot count, the integration falls back to 4 slots.
-
-### Buttons
-
-- `Pause Print`
-- `Resume Print`
-- `Cancel Print`
-- `Connect Bridge`
-- `Disconnect Bridge`
-
-### Select
-
-- `Print Speed`
-
-### Light
-
-- `Light`
-
-### Camera
-
-- `Camera`
-
-### Image
-
-- `GCode Thumbnail`
-
-## Prerequisites
-
-1. [KX-Bridge-Release](https://gitea.it-drui.de/viewit/KX-Bridge-Release) must be running and reachable from Home Assistant.
-2. Verify [KX-Bridge-Release](https://gitea.it-drui.de/viewit/KX-Bridge-Release) is accessible at `http://<bridge-host>:7125`.
-
-## Installation (HACS)
-
-1. Add this repository as a custom repository in HACS with category `Integration`.
-
-   ```https://github.com/gangoke/kobrax-lan-hass-component```
-   
-2. Install the integration.
+1. In HACS, add this repository as a custom repository (category: Integration):
+   `https://github.com/gangoke/kobrax-lan-hass-component`
+2. Install Kobra X LAN from HACS.
 3. Restart Home Assistant.
-4. Add integration `Kobra X LAN` from Settings -> Devices & Services.
+4. Go to Settings -> Devices & Services -> Add Integration.
+5. Search for Kobra X LAN.
+
+### Option 2: Manual (local custom_components)
+
+1. Copy the `kobrax_lan` folder into your Home Assistant `custom_components` directory:
+   `<config>/custom_components/kobrax_lan`
+3. Restart Home Assistant.
+4. Add Kobra X LAN from Settings -> Devices & Services.
 
 ## Configuration
 
 The config flow asks for:
 
 - Host: KX-Bridge host and port (example: `192.168.1.50:7125`)
-- Printer name: Friendly display name
+- Printer name: Friendly display name in Home Assistant
+
+## Entity Overview
+
+| Platform | Key Entities |
+| --- | --- |
+| Binary Sensor | Online, Printing, Light State |
+| Sensor | State, Print State, Progress, Temperatures, Filename, Layer/Time metrics, Skip-object counts, ACE status, AMS/ACE slot material |
+| Button | Pause Print, Resume Print, Cancel Print, Connect Bridge, Disconnect Bridge, Refresh Skip State, ACE Dryer Start, ACE Dryer Stop |
+| Switch | ACE auto-fill switches per detected ACE unit |
+| Number | ACE dry target temperature, ACE dry duration |
+| Select | Print speed |
+| Light | Printer light |
+| Camera | Printer camera |
+| Image | G-code thumbnail |
+
+Slot entities are generated dynamically from KX-Bridge AMS/ACE slot data (including larger ACE topologies).
 
 ## Notes
 
-- This integration talks to KX-Bridge HTTP endpoints and does not connect directly to the printer.
-- Keep KX-Bridge and Home Assistant on the same trusted network.
-- Native WebRTC is not implemented in this integration. If you want WebRTC in Home Assistant, point `go2rtc` or a WebRTC-capable HA add-on at the camera entity's RTSP source.
+- This integration communicates with KX-Bridge HTTP endpoints and does not connect directly to the printer.
+- Keep KX-Bridge and Home Assistant on a trusted local network.
+- Native WebRTC is not implemented. For WebRTC in Home Assistant, point `go2rtc` (or another WebRTC-capable add-on) to the camera RTSP source.

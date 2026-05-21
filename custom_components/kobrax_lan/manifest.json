@@ -5,8 +5,9 @@
     "@Gangoke"
   ],
   "config_flow": true,
+  "homeassistant": "2026.3.0",
   "documentation": "https://github.com/gangoke/kobrax-lan-hass-component",
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/gangoke/kobrax-lan-hass-component/issues",
-  "version": "0.1.0"
+  "version": "0.2.0"
 }
