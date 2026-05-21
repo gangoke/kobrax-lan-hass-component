@@ -49,6 +49,62 @@ class KobraXApiClient:
             return result
         raise KobraXApiError("Unexpected response for /kx/files")
 
+    async def async_get_file_objects(self, file_id: str) -> dict[str, Any]:
+        data = await self._get_json(f"/kx/files/{file_id}/objects")
+        result = data.get("result", {})
+        if isinstance(result, dict):
+            return result
+        raise KobraXApiError("Unexpected response for /kx/files/{id}/objects")
+
+    async def async_skip_objects(self, names: list[str]) -> dict[str, Any]:
+        data = await self._post_json("/kx/skip", {"names": names})
+        result = data.get("result")
+        if result is None:
+            raise KobraXApiError("Unexpected response for /kx/skip")
+        return data
+
+    async def async_skip_query(self) -> dict[str, Any]:
+        data = await self._post_json("/kx/skip/query", {})
+        result = data.get("result", {})
+        if isinstance(result, dict):
+            return result
+        raise KobraXApiError("Unexpected response for /kx/skip/query")
+
+    async def async_get_skip_state(self) -> dict[str, Any]:
+        data = await self._get_json("/kx/skip/state")
+        result = data.get("result", {})
+        if isinstance(result, dict):
+            return result
+        raise KobraXApiError("Unexpected response for /kx/skip/state")
+
+    async def async_set_ace_auto_feed(self, ace_id: int, on: bool) -> dict[str, Any]:
+        data = await self._post_json("/api/ace/auto_feed", {"ace_id": ace_id, "on": on})
+        result = data.get("result")
+        if result is None:
+            raise KobraXApiError("Unexpected response for /api/ace/auto_feed")
+        return data
+
+    async def async_set_ace_dry(
+        self,
+        action: str,
+        target_temp: int | None = None,
+        duration: int | None = None,
+        ace_id: int | None = None,
+    ) -> dict[str, Any]:
+        payload: dict[str, Any] = {"action": action}
+        if target_temp is not None:
+            payload["target_temp"] = int(target_temp)
+        if duration is not None:
+            payload["duration"] = int(duration)
+        if ace_id is not None:
+            payload["ace_id"] = int(ace_id)
+
+        data = await self._post_json("/api/ace/dry", payload)
+        result = data.get("result")
+        if result is None:
+            raise KobraXApiError("Unexpected response for /api/ace/dry")
+        return data
+
     async def async_pause_print(self) -> None:
         await self._post_json("/printer/print/pause", {})
 
@@ -79,8 +135,23 @@ class KobraXApiClient:
     async def async_disconnect(self) -> None:
         await self._post_json("/api/disconnect", {})
 
+    async def async_restart_bridge(self) -> None:
+        await self._post_json("/api/restart", {})
+
     async def async_start_camera(self) -> None:
         await self._post_json("/api/camera/start", {})
+
+    async def async_stop_camera(self) -> None:
+        await self._post_json("/api/camera/stop", {})
+
+    async def async_check_updates(self) -> dict[str, Any]:
+        return await self._get_json("/api/update/check")
+
+    async def async_apply_update(self, tag: str, download_url: str) -> dict[str, Any]:
+        return await self._post_json(
+            "/api/update/apply",
+            {"tag": tag, "download_url": download_url},
+        )
 
     async def async_get_camera_url(self) -> str | None:
         data = await self._get_json("/api/camera")

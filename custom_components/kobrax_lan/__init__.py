@@ -34,6 +34,24 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "coordinator": coordinator,
         "api": api,
         "entry": entry,
+        "ace_dry_config": {
+            0: {
+                "target_temp": int((coordinator.data or {}).get("ace_drying", {}).get("target_temp", 45) or 45),
+                "duration": int((coordinator.data or {}).get("ace_drying", {}).get("duration", 240) or 240),
+            },
+            1: {
+                "target_temp": 45,
+                "duration": 240,
+            },
+            2: {
+                "target_temp": 45,
+                "duration": 240,
+            },
+            3: {
+                "target_temp": 45,
+                "duration": 240,
+            },
+        },
     }
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
