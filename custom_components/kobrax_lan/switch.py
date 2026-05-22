@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.exceptions import ServiceValidationError
 
@@ -24,11 +26,35 @@ class KobraXAceAutoFeedSwitch(KobraXEntity, SwitchEntity):
             value = auto_feed.get(str(self._ace_id))
         return bool(value)
 
+    def _apply_optimistic_state(self, is_on: bool) -> None:
+        merged: dict[str, Any] = dict(self.coordinator.data or {})
+        auto_feed = merged.get("ace_auto_feed")
+        if not isinstance(auto_feed, dict):
+            auto_feed = {}
+        else:
+            auto_feed = dict(auto_feed)
+
+        key: int | str = self._ace_id
+        if key not in auto_feed and str(self._ace_id) in auto_feed:
+            key = str(self._ace_id)
+        auto_feed[key] = 1 if is_on else 0
+
+        merged["ace_auto_feed"] = auto_feed
+        self.coordinator.async_set_updated_data(merged)
+
     async def async_turn_on(self, **kwargs) -> None:
         api = self.hass.data[DOMAIN][self._entry.entry_id]["api"]
         try:
             await api.async_set_ace_auto_feed(self._ace_id, True)
-            await self.coordinator.async_request_refresh()
+            self._apply_optimistic_state(True)
+        except KobraXApiError as err:
+            raise ServiceValidationError(str(err)) from err
+
+    async def async_turn_off(self, **kwargs) -> None:
+        api = self.hass.data[DOMAIN][self._entry.entry_id]["api"]
+        try:
+            await api.async_set_ace_auto_feed(self._ace_id, False)
+            self._apply_optimistic_state(False)
         except KobraXApiError as err:
             raise ServiceValidationError(str(err)) from err
 
@@ -62,6 +88,36 @@ class KobraXAceDryerSwitch(KobraXEntity, SwitchEntity):
         except (TypeError, ValueError):
             return False
 
+    def _apply_optimistic_state(self, is_on: bool) -> None:
+        merged: dict[str, Any] = dict(self.coordinator.data or {})
+        drying = merged.get("ace_drying")
+        if not isinstance(drying, dict):
+            drying = {}
+        else:
+            drying = dict(drying)
+
+        unit_data = drying.get(self._ace_id)
+        unit_key: int | str = self._ace_id
+        if unit_data is None:
+            unit_data = drying.get(str(self._ace_id))
+            if unit_data is not None:
+                unit_key = str(self._ace_id)
+
+        if isinstance(unit_data, dict):
+            next_unit_data = dict(unit_data)
+        else:
+            next_unit_data = {}
+
+        next_unit_data["status"] = 1 if is_on else 0
+        drying[unit_key] = next_unit_data
+
+        # Keep backward-compatible flat status for unit 0 payload variants.
+        if self._ace_id == 0:
+            drying["status"] = 1 if is_on else 0
+
+        merged["ace_drying"] = drying
+        self.coordinator.async_set_updated_data(merged)
+
     async def async_turn_on(self, **kwargs) -> None:
         api = self.hass.data[DOMAIN][self._entry.entry_id]["api"]
         try:
@@ -73,7 +129,7 @@ class KobraXAceDryerSwitch(KobraXEntity, SwitchEntity):
                 duration=int(ace_cfg.get("duration", 240)),
                 ace_id=self._ace_id,
             )
-            await self.coordinator.async_request_refresh()
+            self._apply_optimistic_state(True)
         except KobraXApiError as err:
             raise ServiceValidationError(str(err)) from err
 
@@ -81,7 +137,7 @@ class KobraXAceDryerSwitch(KobraXEntity, SwitchEntity):
         api = self.hass.data[DOMAIN][self._entry.entry_id]["api"]
         try:
             await api.async_set_ace_dry("stop", ace_id=self._ace_id)
-            await self.coordinator.async_request_refresh()
+            self._apply_optimistic_state(False)
         except KobraXApiError as err:
             raise ServiceValidationError(str(err)) from err
 

@@ -1,8 +1,12 @@
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 import aiohttp
+
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class KobraXApiError(Exception):
@@ -79,9 +83,8 @@ class KobraXApiClient:
 
     async def async_set_ace_auto_feed(self, ace_id: int, on: bool) -> dict[str, Any]:
         data = await self._post_json("/api/ace/auto_feed", {"ace_id": ace_id, "on": on})
-        result = data.get("result")
-        if result is None:
-            raise KobraXApiError("Unexpected response for /api/ace/auto_feed")
+        if data.get("error") not in (None, ""):
+            raise KobraXApiError(str(data["error"]))
         return data
 
     async def async_set_ace_dry(
@@ -99,10 +102,19 @@ class KobraXApiClient:
         if ace_id is not None:
             payload["ace_id"] = int(ace_id)
 
-        data = await self._post_json("/api/ace/dry", payload)
-        result = data.get("result")
-        if result is None:
-            raise KobraXApiError("Unexpected response for /api/ace/dry")
+        try:
+            data = await self._post_json("/api/ace/dry", payload)
+        except KobraXApiError as err:
+            # Some bridge versions can return a false 502 while setDry is
+            # still applied successfully on the printer.
+            msg = str(err)
+            if "502" in msg and "/api/ace/dry" in msg:
+                _LOGGER.warning("Ignoring bridge 502 for /api/ace/dry because command may already be applied: %s", msg)
+                return {"result": "ok", "warning": "ignored_502"}
+            raise
+
+        if data.get("error") not in (None, ""):
+            raise KobraXApiError(str(data["error"]))
         return data
 
     async def async_pause_print(self) -> None:

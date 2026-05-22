@@ -20,23 +20,10 @@ class KobraXCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         )
         self.api = api
         self._update_info: dict[str, Any] = {}
-        self._restart_supported: bool | None = None
         self._next_update_check_monotonic = 0.0
 
     async def _async_update_data(self) -> dict[str, Any]:
         try:
-            # Probe restart endpoint once if not checked
-            if self._restart_supported is None:
-                try:
-                    await self.api.async_restart_bridge()
-                    self._restart_supported = True
-                except Exception as err:
-                    # Only disable if 404/501, otherwise treat as available
-                    msg = str(err)
-                    if "404" in msg or "501" in msg:
-                        self._restart_supported = False
-                    else:
-                        self._restart_supported = True
             state = await self.api.async_get_state()
 
             now = time.monotonic()
