@@ -51,15 +51,14 @@ BUTTONS: tuple[KobraXButtonDescription, ...] = (
         action="disconnect",
         entity_category=EntityCategory.CONFIG,
         entity_registry_enabled_default=False,
-    ),
-# ENABLE ME WHEN API ENDPOINT IS ADDED    
-#      KobraXButtonDescription(
-#          key="restart_bridge",
-#          name="Restart (KX-Bridge)",
-#          icon="mdi:restart",
-#         action="restart",
-#          entity_category=EntityCategory.CONFIG,
-#      ), 
+    ),   
+     KobraXButtonDescription(
+         key="restart_bridge",
+         name="Restart (KX-Bridge)",
+         icon="mdi:restart",
+        action="restart",
+         entity_category=EntityCategory.CONFIG,
+     ), 
     KobraXButtonDescription(
         key="refresh_skip_state",
         name="Refresh Skip State",
