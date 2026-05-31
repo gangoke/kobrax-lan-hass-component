@@ -24,6 +24,9 @@ class KobraXApiClient:
     def camera_stream_proxy_url(self) -> str:
         return self._url("/api/camera/stream")
 
+    def camera_h264_proxy_url(self) -> str:
+        return self._url("/api/camera/h264")
+
     async def _get_json(self, path: str) -> dict[str, Any]:
         try:
             async with self._session.get(self._url(path)) as response:

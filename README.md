@@ -58,4 +58,5 @@ Slot and ACE entities are pre-created and automatically enabled/disabled based o
 
 - This integration communicates with KX-Bridge HTTP endpoints and does not connect directly to the printer.
 - Keep KX-Bridge and Home Assistant on a trusted local network.
-- Native WebRTC is not implemented. For WebRTC in Home Assistant, point `go2rtc` (or another WebRTC-capable add-on) to the camera RTSP source.
+- Camera streaming prefers the bridge H.264 endpoint (`/api/camera/h264`, MPEG-TS passthrough) on newer bridge releases, with RTSP/MJPEG fallback for older releases.
+- Native WebRTC is not implemented. For WebRTC in Home Assistant, point `go2rtc` (or another WebRTC-capable add-on) to the camera source you prefer (H.264 bridge endpoint or RTSP).
