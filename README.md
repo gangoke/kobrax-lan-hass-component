@@ -43,11 +43,11 @@ The config flow asks for:
 | Platform | Key Entities |
 | --- | --- |
 | Binary Sensor | Online, Printing, Light State |
-| Sensor | State, Print State, Progress, Hotend Temperature, Target Hotend Temperature, Bed Temperature, Target Bed Temperature, Filename, Current Layer, Total Layers, Remaining Time, Print Duration, Skip Object Count, Skipped Object Count, Filament Mode, ACE Unit Count, Bridge Version, Latest Available Version, Slot 1..Slot 19, ACE 1..4 Dryer Status, ACE 1..4 Dryer Humidity, ACE 1..4 Dryer Current Temperature, ACE 1..4 Dryer Target Temperature, ACE 1..4 Dryer Remaining Time |
+| Sensor | State, Print State, Progress, Hotend Temperature, Target Hotend Temperature, Bed Temperature, Target Bed Temperature, Filename, Current Layer, Total Layers, Remaining Time, Print Duration, Skip Object Count, Skipped Object Count, Filament Mode, ACE Unit Count, Bridge Version, Latest Available Version, Camera Stream Mode, Slot 1..Slot 19, ACE 1..4 Dryer Status, ACE 1..4 Dryer Humidity, ACE 1..4 Dryer Current Temperature, ACE 1..4 Dryer Target Temperature, ACE 1..4 Dryer Remaining Time |
 | Button | Pause Print, Resume Print, Cancel Print, Connect Bridge, Disconnect Bridge, Refresh Skip State, Apply Update (KX-Bridge) |
-| Switch | ACE 1..4 Auto Fill, ACE 1..4 Dryer |
+| Switch | Camera On Print, Web Upload Warning, ACE 1..4 Auto Fill, ACE 1..4 Dryer |
 | Number | ACE 1..4 Dryer Target Temperature, ACE 1..4 Dryer Duration |
-| Select | Print speed |
+| Select | Print speed, Slot 1..Slot 19 Filament Profile |
 | Light | Printer light |
 | Camera | Printer camera |
 | Image | G-code thumbnail |
@@ -58,4 +58,5 @@ Slot and ACE entities are pre-created and automatically enabled/disabled based o
 
 - This integration communicates with KX-Bridge HTTP endpoints and does not connect directly to the printer.
 - Keep KX-Bridge and Home Assistant on a trusted local network.
-- Native WebRTC is not implemented. For WebRTC in Home Assistant, point `go2rtc` (or another WebRTC-capable add-on) to the camera RTSP source.
+- Camera streaming prefers the bridge H.264 endpoint (`/api/camera/h264`, MPEG-TS passthrough) on newer bridge releases, with RTSP/MJPEG fallback for older releases.
+- Native WebRTC is not implemented. For WebRTC in Home Assistant, point `go2rtc` (or another WebRTC-capable add-on) to the camera source you prefer (H.264 bridge endpoint or RTSP).

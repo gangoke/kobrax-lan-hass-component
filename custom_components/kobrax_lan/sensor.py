@@ -462,6 +462,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
             ace_dryer_entities.append(KobraXAceDryerSensor(coordinator, entry, ace_id, sensor_type))
 
     entity_registry = er.async_get(hass)
+    slot_registry_state: dict[str, int | None] = {"last_limit": None, "short_count": 0}
 
     # Remove legacy single-unit ACE dryer sensors that were replaced by per-unit entities.
     legacy_ace_sensor_keys = (
@@ -480,28 +481,50 @@ async def async_setup_entry(hass, entry, async_add_entities):
     @callback
     def _sync_slot_registry_state() -> None:
         state_data = coordinator.data or {}
-        enabled_slots = _detected_slot_limit(state_data)
+        detected_limit = _detected_slot_limit(state_data)
+
+        last_limit = slot_registry_state["last_limit"]
+        short_count = int(slot_registry_state["short_count"] or 0)
+
+        if last_limit is None or detected_limit >= last_limit:
+            effective_limit = detected_limit
+            slot_registry_state["last_limit"] = detected_limit
+            slot_registry_state["short_count"] = 0
+        else:
+            short_count += 1
+            slot_registry_state["short_count"] = short_count
+            if short_count < 2:
+                effective_limit = last_limit
+            else:
+                effective_limit = detected_limit
+                slot_registry_state["last_limit"] = detected_limit
+                slot_registry_state["short_count"] = 0
 
         for slot_index in range(MAX_FILAMENT_SLOTS):
-            unique_id = f"{entry.entry_id}_slot_{slot_index + 1}"
-            entity_id = entity_registry.async_get_entity_id("sensor", DOMAIN, unique_id)
-            if not entity_id:
-                continue
+            entities_to_sync = [
+                ("sensor", f"{entry.entry_id}_slot_{slot_index + 1}"),
+                ("select", f"{entry.entry_id}_slot_{slot_index + 1}_filament_profile"),
+            ]
 
-            reg_entry = entity_registry.async_get(entity_id)
-            if reg_entry is None:
-                continue
+            for platform, unique_id in entities_to_sync:
+                entity_id = entity_registry.async_get_entity_id(platform, DOMAIN, unique_id)
+                if not entity_id:
+                    continue
 
-            should_enable = slot_index < enabled_slots
-            if should_enable:
-                if reg_entry.disabled_by == RegistryEntryDisabler.INTEGRATION:
-                    entity_registry.async_update_entity(entity_id, disabled_by=None)
-            else:
-                if reg_entry.disabled_by is None:
-                    entity_registry.async_update_entity(
-                        entity_id,
-                        disabled_by=RegistryEntryDisabler.INTEGRATION,
-                    )
+                reg_entry = entity_registry.async_get(entity_id)
+                if reg_entry is None:
+                    continue
+
+                should_enable = slot_index < effective_limit
+                if should_enable:
+                    if reg_entry.disabled_by == RegistryEntryDisabler.INTEGRATION:
+                        entity_registry.async_update_entity(entity_id, disabled_by=None)
+                else:
+                    if reg_entry.disabled_by is None:
+                        entity_registry.async_update_entity(
+                            entity_id,
+                            disabled_by=RegistryEntryDisabler.INTEGRATION,
+                        )
 
     async_add_entities(
         [

@@ -24,6 +24,21 @@ class KobraXApiClient:
     def camera_stream_proxy_url(self) -> str:
         return self._url("/api/camera/stream")
 
+    def camera_h264_proxy_url(self) -> str:
+        return self._url("/api/camera/h264")
+
+    async def async_h264_stream_available(self, timeout_seconds: float = 1.5) -> bool:
+        """Probe whether the bridge h264 endpoint is reachable now."""
+        try:
+            timeout = aiohttp.ClientTimeout(total=timeout_seconds)
+            async with self._session.get(self.camera_h264_proxy_url(), timeout=timeout) as response:
+                if response.status != 200:
+                    return False
+                chunk = await response.content.read(1)
+                return bool(chunk)
+        except Exception:
+            return False
+
     async def _get_json(self, path: str) -> dict[str, Any]:
         try:
             async with self._session.get(self._url(path)) as response:
@@ -45,6 +60,18 @@ class KobraXApiClient:
 
     async def async_get_state(self) -> dict[str, Any]:
         return await self._get_json("/api/state")
+
+    async def async_get_settings(self) -> dict[str, Any]:
+        data = await self._get_json("/api/settings")
+        if isinstance(data, dict):
+            return data
+        raise KobraXApiError("Unexpected response for /api/settings")
+
+    async def async_set_settings(self, payload: dict[str, Any]) -> dict[str, Any]:
+        data = await self._post_json("/api/settings", payload)
+        if isinstance(data, dict):
+            return data
+        raise KobraXApiError("Unexpected response for /api/settings")
 
     async def async_get_files(self) -> list[dict[str, Any]]:
         data = await self._get_json("/kx/files")
@@ -80,6 +107,45 @@ class KobraXApiClient:
         if isinstance(result, dict):
             return result
         raise KobraXApiError("Unexpected response for /kx/skip/state")
+
+    async def async_get_filament_slots(self) -> list[dict[str, Any]]:
+        data = await self._get_json("/kx/filament/slots")
+        result = data.get("result", [])
+        if isinstance(result, list):
+            return [slot for slot in result if isinstance(slot, dict)]
+        raise KobraXApiError("Unexpected response for /kx/filament/slots")
+
+    async def async_get_filament_profiles(self, material_type: str | None = None) -> list[dict[str, Any]]:
+        params: dict[str, str] = {}
+        if material_type:
+            params["type"] = material_type
+
+        try:
+            async with self._session.get(self._url("/kx/filament/profiles"), params=params or None) as response:
+                response.raise_for_status()
+                data = await response.json()
+        except Exception as err:
+            raise KobraXApiError(err) from err
+
+        result = data.get("result", []) if isinstance(data, dict) else []
+        if isinstance(result, list):
+            return [profile for profile in result if isinstance(profile, dict)]
+        raise KobraXApiError("Unexpected response for /kx/filament/profiles")
+
+    async def async_set_filament_slot_profile(
+        self,
+        slot_index: int,
+        filament_id: str,
+        vendor: str = "",
+        name: str = "",
+    ) -> dict[str, Any]:
+        data = await self._post_json(
+            f"/kx/filament/slots/{int(slot_index)}/profile",
+            {"id": filament_id, "vendor": vendor, "name": name},
+        )
+        if isinstance(data, dict):
+            return data
+        raise KobraXApiError("Unexpected response for /kx/filament/slots/{idx}/profile")
 
     async def async_set_ace_auto_feed(self, ace_id: int, on: bool) -> dict[str, Any]:
         data = await self._post_json("/api/ace/auto_feed", {"ace_id": ace_id, "on": on})

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from homeassistant.components.camera import Camera, CameraEntityFeature
 
 from .api import KobraXApiError
@@ -21,13 +22,26 @@ class KobraXCamera(KobraXEntity, Camera):
 
     @property
     def extra_state_attributes(self) -> dict[str, str]:
+        api = self.hass.data[DOMAIN][self._entry.entry_id]["api"]
         camera_url = self.state_data.get("camera_url")
         attrs = {
-            "camera_mjpeg_proxy_url": self.hass.data[DOMAIN][self._entry.entry_id]["api"].camera_stream_proxy_url(),
+            "camera_h264_proxy_url": api.camera_h264_proxy_url(),
+            "camera_mjpeg_proxy_url": api.camera_stream_proxy_url(),
         }
         if isinstance(camera_url, str) and camera_url:
             attrs["camera_rtsp_url"] = camera_url
         return attrs
+
+    @staticmethod
+    def _bridge_supports_h264_stream(version: str | None) -> bool:
+        """Return True when bridge version includes /api/camera/h264 support."""
+        if not version:
+            return False
+        match = re.search(r"(\d+)\.(\d+)\.(\d+)", version)
+        if not match:
+            return False
+        major, minor, patch = (int(part) for part in match.groups())
+        return (major, minor, patch) >= (0, 9, 17)
 
     async def stream_source(self) -> str | None:
         api = self.hass.data[DOMAIN][self._entry.entry_id]["api"]
@@ -36,6 +50,14 @@ class KobraXCamera(KobraXEntity, Camera):
         except KobraXApiError:
             pass
 
+        selected_mode = "mjpeg_proxy"
+        selected_url = api.camera_stream_proxy_url()
+
+        version = self.state_data.get("version")
+        if isinstance(version, str) and self._bridge_supports_h264_stream(version):
+            if await api.async_h264_stream_available():
+                return api.camera_h264_proxy_url()
+
         camera_url = self.state_data.get("camera_url")
         if isinstance(camera_url, str) and camera_url:
             return camera_url
@@ -43,9 +65,12 @@ class KobraXCamera(KobraXEntity, Camera):
         try:
             camera_url = await api.async_get_camera_url()
         except KobraXApiError:
-            return api.camera_stream_proxy_url()
+            return selected_url
 
-        return camera_url or api.camera_stream_proxy_url()
+        if isinstance(camera_url, str) and camera_url:
+            selected_url = camera_url
+
+        return selected_url
 
     async def async_camera_image(self, width: int | None = None, height: int | None = None) -> bytes | None:
         api = self.hass.data[DOMAIN][self._entry.entry_id]["api"]
