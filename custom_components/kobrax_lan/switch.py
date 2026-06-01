@@ -4,6 +4,7 @@ from typing import Any
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.exceptions import ServiceValidationError
+from homeassistant.helpers.entity import EntityCategory
 
 from .api import KobraXApiError
 from .const import DOMAIN
@@ -49,6 +50,58 @@ class KobraXAceAutoFeedSwitch(KobraXEntity, SwitchEntity):
             self._apply_optimistic_state(True)
         except KobraXApiError as err:
             raise ServiceValidationError(str(err)) from err
+
+
+class KobraXBridgeSettingSwitch(KobraXEntity, SwitchEntity):
+    def __init__(self, coordinator, entry, key: str, name: str, setting_key: str, icon: str) -> None:
+        super().__init__(coordinator, entry, key, name)
+        self._setting_key = setting_key
+        self._attr_icon = icon
+        self._attr_entity_category = EntityCategory.CONFIG
+
+    def _current_settings(self) -> dict[str, Any]:
+        settings = self.state_data.get("settings")
+        return settings if isinstance(settings, dict) else {}
+
+    @property
+    def available(self) -> bool:
+        return bool(self._current_settings()) and super().available
+
+    @property
+    def is_on(self) -> bool:
+        value = self._current_settings().get(self._setting_key)
+        try:
+            return bool(int(value))
+        except (TypeError, ValueError):
+            return bool(value)
+
+    def _apply_optimistic_state(self, is_on: bool) -> None:
+        merged: dict[str, Any] = dict(self.coordinator.data or {})
+        settings = merged.get("settings")
+        if not isinstance(settings, dict):
+            settings = {}
+        else:
+            settings = dict(settings)
+
+        settings[self._setting_key] = 1 if is_on else 0
+        merged["settings"] = settings
+        self.coordinator.async_set_updated_data(merged)
+
+    async def _set_state(self, is_on: bool) -> None:
+        api = self.hass.data[DOMAIN][self._entry.entry_id]["api"]
+        try:
+            settings = await api.async_get_settings()
+            settings[self._setting_key] = 1 if is_on else 0
+            await api.async_set_settings(settings)
+            self._apply_optimistic_state(is_on)
+        except KobraXApiError as err:
+            raise ServiceValidationError(str(err)) from err
+
+    async def async_turn_on(self, **kwargs) -> None:
+        await self._set_state(True)
+
+    async def async_turn_off(self, **kwargs) -> None:
+        await self._set_state(False)
 
     async def async_turn_off(self, **kwargs) -> None:
         api = self.hass.data[DOMAIN][self._entry.entry_id]["api"]
@@ -145,7 +198,24 @@ class KobraXAceDryerSwitch(KobraXEntity, SwitchEntity):
 async def async_setup_entry(hass, entry, async_add_entities):
     coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
 
-    entities = []
+    entities = [
+        KobraXBridgeSettingSwitch(
+            coordinator,
+            entry,
+            "camera_on_print",
+            "Camera On Print",
+            "camera_on_print",
+            "mdi:camera-wireless",
+        ),
+        KobraXBridgeSettingSwitch(
+            coordinator,
+            entry,
+            "web_upload_warning",
+            "Web Upload Warning",
+            "web_upload_warning",
+            "mdi:alert-outline",
+        ),
+    ]
 
     # Pre-create switches for all 4 possible ACE units
     entities.extend(KobraXAceAutoFeedSwitch(coordinator, entry, ace_id) for ace_id in range(4))

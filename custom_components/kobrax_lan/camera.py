@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import re
-
 from homeassistant.components.camera import Camera, CameraEntityFeature
 
 from .api import KobraXApiError
@@ -51,9 +50,13 @@ class KobraXCamera(KobraXEntity, Camera):
         except KobraXApiError:
             pass
 
+        selected_mode = "mjpeg_proxy"
+        selected_url = api.camera_stream_proxy_url()
+
         version = self.state_data.get("version")
         if isinstance(version, str) and self._bridge_supports_h264_stream(version):
-            return api.camera_h264_proxy_url()
+            if await api.async_h264_stream_available():
+                return api.camera_h264_proxy_url()
 
         camera_url = self.state_data.get("camera_url")
         if isinstance(camera_url, str) and camera_url:
@@ -62,9 +65,12 @@ class KobraXCamera(KobraXEntity, Camera):
         try:
             camera_url = await api.async_get_camera_url()
         except KobraXApiError:
-            return api.camera_stream_proxy_url()
+            return selected_url
 
-        return camera_url or api.camera_stream_proxy_url()
+        if isinstance(camera_url, str) and camera_url:
+            selected_url = camera_url
+
+        return selected_url
 
     async def async_camera_image(self, width: int | None = None, height: int | None = None) -> bytes | None:
         api = self.hass.data[DOMAIN][self._entry.entry_id]["api"]

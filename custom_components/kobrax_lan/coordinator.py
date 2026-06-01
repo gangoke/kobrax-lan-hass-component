@@ -37,12 +37,28 @@ class KobraXCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
             if self._update_info:
                 state["update_info"] = self._update_info
+
+            try:
+                settings = await self.api.async_get_settings()
+                state["settings"] = settings
+            except KobraXApiError:
+                # Settings endpoint is only available on newer bridge versions.
+                pass
+
             try:
                 skip_state = await self.api.async_get_skip_state()
                 state["skip_state"] = skip_state
             except KobraXApiError:
                 # Skip endpoints are only available on newer bridge versions.
                 pass
+
+            try:
+                filament_slots = await self.api.async_get_filament_slots()
+                state["filament_slots"] = filament_slots
+            except KobraXApiError:
+                # Filament profile endpoints are only available on newer bridge versions.
+                pass
+
             return state
         except KobraXApiError as err:
             raise UpdateFailed(str(err)) from err
