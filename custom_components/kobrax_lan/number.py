@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from homeassistant.components.number import NumberEntity
+from homeassistant.components.number import RestoreNumber
 
 from .const import DOMAIN
 from .entity import KobraXEntity
@@ -18,7 +18,7 @@ def _minutes_to_hhmmss(minutes: int | float) -> str:
     return f"{hours:02d}:{mins:02d}:{secs:02d}"
 
 
-class KobraXAceDryConfigNumber(KobraXEntity, NumberEntity):
+class KobraXAceDryConfigNumber(KobraXEntity, RestoreNumber):
     def __init__(
         self,
         coordinator,
@@ -48,6 +48,16 @@ class KobraXAceDryConfigNumber(KobraXEntity, NumberEntity):
         self._attr_native_unit_of_measurement = unit
         self._attr_mode = "box"
         self._attr_icon = icon
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        last_data = await self.async_get_last_number_data()
+        if last_data is None or last_data.native_value is None:
+            return
+        cfg = self.hass.data[DOMAIN][self._entry.entry_id]["ace_dry_config"]
+        ace_cfg = cfg.setdefault(self._ace_id, {})
+        key = "target_temp" if self._config_type == "target_temp" else "duration"
+        ace_cfg[key] = int(round(last_data.native_value))
 
     @property
     def native_value(self) -> float:

@@ -51,6 +51,14 @@ class KobraXAceAutoFeedSwitch(KobraXEntity, SwitchEntity):
         except KobraXApiError as err:
             raise ServiceValidationError(str(err)) from err
 
+    async def async_turn_off(self, **kwargs) -> None:
+        api = self.hass.data[DOMAIN][self._entry.entry_id]["api"]
+        try:
+            await api.async_set_ace_auto_feed(self._ace_id, False)
+            self._apply_optimistic_state(False)
+        except KobraXApiError as err:
+            raise ServiceValidationError(str(err)) from err
+
 
 class KobraXBridgeSettingSwitch(KobraXEntity, SwitchEntity):
     def __init__(self, coordinator, entry, key: str, name: str, setting_key: str, icon: str) -> None:
@@ -102,14 +110,6 @@ class KobraXBridgeSettingSwitch(KobraXEntity, SwitchEntity):
 
     async def async_turn_off(self, **kwargs) -> None:
         await self._set_state(False)
-
-    async def async_turn_off(self, **kwargs) -> None:
-        api = self.hass.data[DOMAIN][self._entry.entry_id]["api"]
-        try:
-            await api.async_set_ace_auto_feed(self._ace_id, False)
-            self._apply_optimistic_state(False)
-        except KobraXApiError as err:
-            raise ServiceValidationError(str(err)) from err
 
 
 class KobraXAceDryerSwitch(KobraXEntity, SwitchEntity):

@@ -38,6 +38,10 @@ The config flow asks for:
 - Host: KX-Bridge host and port (example: `192.168.1.50:7125`)
 - Printer name: Friendly display name in Home Assistant
 
+### Multi-printer setups
+
+KX-Bridge can run multiple printers from a single instance, each on its own port. After adding the first printer, the config flow checks the bridge for sibling printers and offers to add any that aren't configured yet as separate devices — no need to manually look up each port.
+
 ## Entity Overview
 
 | Platform | Key Entities |
@@ -60,3 +64,4 @@ Slot and ACE entities are pre-created and automatically enabled/disabled based o
 - Keep KX-Bridge and Home Assistant on a trusted local network.
 - Camera streaming prefers the bridge H.264 endpoint (`/api/camera/h264`, MPEG-TS passthrough) on newer bridge releases, with RTSP/MJPEG fallback for older releases.
 - Native WebRTC is not implemented. For WebRTC in Home Assistant, point `go2rtc` (or another WebRTC-capable add-on) to the camera source you prefer (H.264 bridge endpoint or RTSP).
+- ACE dryer target temperature and duration (Number entities) now survive Home Assistant restarts.

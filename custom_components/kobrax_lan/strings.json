@@ -8,6 +8,13 @@
           "host": "KX-Bridge URL",
           "printer_name": "Printer name"
         }
+      },
+      "discovered": {
+        "title": "Other printers found",
+        "description": "This KX-Bridge instance manages more than one printer. Select any additional printers to add now.",
+        "data": {
+          "printers": "Printers to add"
+        }
       }
     },
     "error": {

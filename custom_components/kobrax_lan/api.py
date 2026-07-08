@@ -58,6 +58,13 @@ class KobraXApiClient:
     async def async_check_version(self) -> dict[str, Any]:
         return await self._get_json("/api/version")
 
+    async def async_get_printers(self) -> list[dict[str, Any]]:
+        data = await self._get_json("/kx/printers")
+        result = data.get("result", [])
+        if isinstance(result, list):
+            return [printer for printer in result if isinstance(printer, dict)]
+        raise KobraXApiError("Unexpected response for /kx/printers")
+
     async def async_get_state(self) -> dict[str, Any]:
         return await self._get_json("/api/state")
 
