@@ -21,7 +21,10 @@ def _detected_slot_limit(state_data: dict[str, Any]) -> int:
     if mode == "toolhead":
         return TOOLHEAD_SLOT_LIMIT
     if mode == "ace_direct":
-        return ACE_DIRECT_SLOT_LIMIT
+        # Multiple daisy-chained ACE units: global index = box_id*4 + local.
+        units = state_data.get("ace_units")
+        unit_count = len(units) if isinstance(units, list) else 1
+        return min(max(unit_count, 1) * ACE_DIRECT_SLOT_LIMIT, MAX_FILAMENT_SLOTS)
 
     slots = state_data.get("ams_slots") or []
     if isinstance(slots, list) and slots:
@@ -30,13 +33,14 @@ def _detected_slot_limit(state_data: dict[str, Any]) -> int:
 
 
 class KobraXPrintSpeedSelect(KobraXEntity, SelectEntity):
-    _attr_options = ["Slow (1)", "Normal (2)", "Fast (3)"]
+    _attr_options = ["Slow (1)", "Normal (2)", "Fast (3)", "Ultra (4)"]
 
     def _mode_to_option(self, mode: int | None) -> str:
         mapping = {
             1: "Slow (1)",
             2: "Normal (2)",
             3: "Fast (3)",
+            4: "Ultra (4)",
         }
         return mapping.get(mode or 2, "Normal (2)")
 

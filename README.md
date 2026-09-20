@@ -10,7 +10,7 @@ Architecture:
 
 ## Requirements
 
-- Running and reachable [KX-Bridge-Release](https://gitea.it-drui.de/viewit/KX-Bridge-Release)
+- Running and reachable [KX-Bridge-Release](https://gitea.it-drui.de/viewit/KX-Bridge-Release) (v0.9.18 or newer; tested with v0.9.29 — multi-ACE dryer data, pause message and error code need v0.9.28+)
 - Bridge endpoint accessible from Home Assistant at `http://<bridge-host>:7125`
 
 ## Installation

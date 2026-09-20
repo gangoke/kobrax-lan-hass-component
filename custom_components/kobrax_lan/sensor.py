@@ -11,6 +11,7 @@ from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity_registry import RegistryEntryDisabler
 
+from .ace import ace_unit_dryer_data
 from .const import DOMAIN
 from .entity import KobraXEntity
 
@@ -26,7 +27,10 @@ def _detected_slot_limit(state_data: dict[str, Any]) -> int:
     if mode == "toolhead":
         return TOOLHEAD_SLOT_LIMIT
     if mode == "ace_direct":
-        return ACE_DIRECT_SLOT_LIMIT
+        # Multiple daisy-chained ACE units: global index = box_id*4 + local.
+        units = state_data.get("ace_units")
+        unit_count = len(units) if isinstance(units, list) else 1
+        return min(max(unit_count, 1) * ACE_DIRECT_SLOT_LIMIT, MAX_FILAMENT_SLOTS)
 
     slots = state_data.get("ams_slots") or []
     if isinstance(slots, list) and slots:
@@ -129,6 +133,31 @@ SENSORS: tuple[KobraXSensorDescription, ...] = (
         icon="mdi:timer-outline",
     ),
     KobraXSensorDescription(
+        key="fan_speed",
+        name="Fan Speed",
+        value_key="fan_speed",
+        native_unit_of_measurement=PERCENTAGE,
+        icon="mdi:fan",
+    ),
+    KobraXSensorDescription(
+        key="pause_message",
+        name="Pause Message",
+        value_key="pause_msg",
+        icon="mdi:pause-circle-outline",
+    ),
+    KobraXSensorDescription(
+        key="error_code",
+        name="Error Code",
+        value_key="error_code",
+        icon="mdi:alert-circle-outline",
+    ),
+    KobraXSensorDescription(
+        key="firmware_version",
+        name="Firmware Version",
+        value_key="firmware_version",
+        icon="mdi:chip",
+    ),
+    KobraXSensorDescription(
         key="skip_object_count",
         name="Skip Object Count",
         value_key="skip_object_count",
@@ -173,7 +202,7 @@ class KobraXSensor(KobraXEntity, SensorEntity):
     def __init__(self, coordinator, entry, description: KobraXSensorDescription) -> None:
         super().__init__(coordinator, entry, description.key, description.name)
         self.entity_description = description
-        if description.value_key in ("version", "latest_available_version"):
+        if description.value_key in ("version", "latest_available_version", "firmware_version"):
             self._attr_entity_category = EntityCategory.DIAGNOSTIC
 
     @staticmethod
@@ -303,21 +332,8 @@ class KobraXAceDryerSensor(KobraXEntity, SensorEntity):
 
     @property
     def native_value(self) -> Any:
-        drying = self.state_data.get("ace_drying") or {}
-        
-        # Handle per-unit structure: ace_drying[ace_id] or global structure
-        if isinstance(drying, dict):
-            # Try per-unit key first
-            unit_data = drying.get(self._ace_id)
-            if isinstance(unit_data, dict):
-                drying = unit_data
-            elif self._ace_id == 0 and not unit_data:
-                # Fall back to global structure for unit 0
-                pass
-            else:
-                # No data for this unit
-                return None
-        else:
+        drying = ace_unit_dryer_data(self.state_data, self._ace_id)
+        if drying is None:
             return None
 
         if self._sensor_type == "status":

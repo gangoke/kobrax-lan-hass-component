@@ -6,6 +6,7 @@ from homeassistant.components.switch import SwitchEntity
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.entity import EntityCategory
 
+from .ace import ace_unit_dryer_data
 from .api import KobraXApiError
 from .const import DOMAIN
 from .entity import KobraXEntity
@@ -120,21 +121,8 @@ class KobraXAceDryerSwitch(KobraXEntity, SwitchEntity):
 
     @property
     def is_on(self) -> bool:
-        drying = self.state_data.get("ace_drying") or {}
-        if not isinstance(drying, dict):
-            return False
-
-        unit_data = drying.get(self._ace_id)
-        if unit_data is None:
-            unit_data = drying.get(str(self._ace_id))
-
-        if isinstance(unit_data, dict):
-            status = unit_data.get("status")
-        elif self._ace_id == 0:
-            # Backward-compatible fallback: older bridge payloads may expose unit 0 as a flat object.
-            status = drying.get("status")
-        else:
-            status = None
+        unit_data = ace_unit_dryer_data(self.state_data, self._ace_id)
+        status = unit_data.get("status") if unit_data else None
 
         try:
             return int(status) > 0 if status is not None else False
@@ -148,6 +136,20 @@ class KobraXAceDryerSwitch(KobraXEntity, SwitchEntity):
             drying = {}
         else:
             drying = dict(drying)
+
+        units = drying.get("units")
+        if isinstance(units, list):
+            new_units = []
+            for unit in units:
+                if isinstance(unit, dict) and str(unit.get("id")) == str(self._ace_id):
+                    unit = {**unit, "status": 1 if is_on else 0}
+                new_units.append(unit)
+            drying["units"] = new_units
+            if self._ace_id == 0:
+                drying["status"] = 1 if is_on else 0
+            merged["ace_drying"] = drying
+            self.coordinator.async_set_updated_data(merged)
+            return
 
         unit_data = drying.get(self._ace_id)
         unit_key: int | str = self._ace_id
